@@ -1,0 +1,31 @@
+services:
+  gui:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    command: ros2 launch pyside6_gui pyside6_gui_launch.py 
+    environment:
+      # Display settings
+      DISPLAY: "${DISPLAY:-:0}"
+      WAYLAND_DISPLAY: "${WAYLAND_DISPLAY}"
+      XDG_RUNTIME_DIR: "${XDG_RUNTIME_DIR:-/tmp/runtime-root}"
+      QT_QPA_PLATFORM: "xcb"
+    volumes:
+      - ./src:/home/ros2-workspace/src
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XDG_RUNTIME_DIR:-/tmp/runtime-root}:${XDG_RUNTIME_DIR:-/tmp/runtime-root}:rw
+      - ${XAUTHORITY:-~/.Xauthority}:/root/.Xauthority:rw
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    entrypoint: ["/entrypoint.sh"]
+    privileged: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cdi
+              capabilities: [gpu]
+              device_ids:
+                - "nvidia.com/gpu=all"
