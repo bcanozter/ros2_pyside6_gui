@@ -22,8 +22,8 @@ class OSMManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.m_request = OSMRequest(self)
-        self.m_startBuildingTileX = 10606
-        self.m_startBuildingTileY = 11814
+        self.m_startBuildingTileX = 10596
+        self.m_startBuildingTileY = 11830
         self.m_tileSizeX = 37
         self.m_tileSizeY = 37
         self.m_request.mapsDataReady.connect(self._slotMapsDataReady)
