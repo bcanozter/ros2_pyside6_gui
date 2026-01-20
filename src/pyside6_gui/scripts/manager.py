@@ -3,7 +3,7 @@
 
 from PySide6.QtQuick3D import QQuick3DTextureData
 from PySide6.QtQml import QmlElement
-from PySide6.QtGui import QImage, QVector3D
+from PySide6.QtGui import QImage, QVector3D, QDesktopServices
 from PySide6.QtCore import QByteArray, QObject, Property, Slot, Signal
 
 from .request import OSMTileData, OSMRequest
@@ -87,6 +87,13 @@ class OSMManager(QObject):
     @Slot(result=str)
     def token(self):
         return self.m_request.token()
+
+    @Slot(str) 
+    def requestOpenUrl(self, url: str):
+        try:
+            QDesktopServices.openUrl(url)
+        except Exception as e:
+            self.logger.error(f"Failed to open URL '{url}': {e}")
 
     tileSizeX = Property(int, tileSizeX, constant=True)
     tileSizeY = Property(int, tileSizeY, constant=True)

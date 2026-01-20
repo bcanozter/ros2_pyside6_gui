@@ -11,7 +11,7 @@ from PySide6.QtCore import (QByteArray, QTimer, QFile, QFileInfo,
                             QObject, QUrl, Signal, Slot)
 
 # %1 = zoom level(is dynamic), %2 = x tile number, %3 = y tile number
-URL_OSMB_MAP = "https://tile-a.openstreetmap.fr/hot/{}/{}/{}.png"
+URL_OSMB_MAP = "https://a.tile.openstreetmap.org/{}/{}/{}.png"
 
 
 @dataclass
@@ -56,7 +56,7 @@ class OSMRequest(QObject):
         self.m_buildingsQueue = []
         self.m_mapsQueue = []
         self.m_networkAccessManager = QNetworkAccessManager()
-        self.m_token = ""
+        #self.m_token = ""
 
         self.m_queuesTimer.timeout.connect(self._slotTimeOut)
         self.m_queuesTimer.setInterval(0)
@@ -110,7 +110,9 @@ class OSMRequest(QObject):
                 return
 
         url = QUrl(URL_OSMB_MAP.format(tile.ZoomLevel, tile.TileX, tile.TileY))
-        reply = self.m_networkAccessManager.get(QNetworkRequest(url))
+        request = QNetworkRequest(url)
+        request.setHeader(QNetworkRequest.KnownHeaders.UserAgentHeader, 'GuiNode/1.0')
+        reply = self.m_networkAccessManager.get(request)
         reply.finished.connect(partial(self._mapsDataReceived, reply, tile))
 
     @Slot(OSMTileData)
