@@ -16,7 +16,7 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QCoreApplication, QTimer
 
 from .manager import OSMManager, CustomTextureData  # noqa: F401
-
+from .mavros import MAVROS
 #
 
 
@@ -36,6 +36,8 @@ class GuiNode(Node):
     def _gui_setup(self):
         self.app = QGuiApplication(sys.argv)
         self.engine = QQmlApplicationEngine()
+        self.mavros_instance = MAVROS(self, "/spiri_mu_1")
+        self.engine.rootContext().setContextProperty("mavrosHandler", self.mavros_instance)
         self.engine.addImportPath(Path(__file__).parent)
         self.engine.loadFromModule("OSMBuildings", "Main")
         if not self.engine.rootObjects():

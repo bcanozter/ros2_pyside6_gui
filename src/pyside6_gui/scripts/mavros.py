@@ -3,10 +3,17 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from mavros_msgs.msg import State, SysStatus
 from sensor_msgs.msg import NavSatFix
 from rclpy.qos import qos_profile_default, qos_profile_sensor_data
+from PySide6.QtQml import QmlElement
+from PySide6.QtCore import QObject, Signal
 
 
-class MAVROS:
+QML_IMPORT_NAME = "MAVROS"
+QML_IMPORT_MAJOR_VERSION = 1
+@QmlElement
+class MAVROS(QObject):
+    positionChanged = Signal(float, float, float)
     def __init__(self, node: Node, namespace: str):
+        super().__init__()
         self.subscriptions = []
         self.node = node
         self.namespace = namespace
@@ -65,8 +72,10 @@ class MAVROS:
         self.sys_status = msg
 
     def global_position_cb(self, msg: NavSatFix):
-        print(msg)
         self.global_position = msg
+        self.positionChanged.emit(self.global_position.latitude,
+                                  self.global_position.longitude,
+                                  self.global_position.altitude)
 
     def destroy(self):
         for sub in self.subscriptions:

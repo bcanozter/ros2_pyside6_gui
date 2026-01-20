@@ -137,12 +137,14 @@ Window {
             scale: Qt.vector3d(0.02, 0.02, 0.02)
 
             Connections {
-                function onPositionChanged() {
-                    robotPlaceHolder.updatePosition();
+                target: mavrosHandler
+                function onPositionChanged(latitude, longitude, altitude) {
+                    robotPlaceHolder.updatePosition(latitude, longitude, altitude);
                 }
             }
 
-            function updatePosition() {
+            function updatePosition(latitude, longitude, altitude) {
+                //console.log(latitude,longitude,altitude)
                 //TODO
 
             }
