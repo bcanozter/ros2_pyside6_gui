@@ -12,7 +12,7 @@ Window {
     width: 1024
     height: 768
     visible: true
-    title: qsTr("OSM Buildings")
+    title: qsTr("Pyside6 GUI")
 
     OSMManager {
         id: osmManager
@@ -73,7 +73,7 @@ Window {
 
         Node {
             id: originNode
-            eulerRotation: Qt.vector3d(50.0, 0.0, 0.0)
+            //eulerRotation: Qt.vector3d(50.0, 0.0, 0.0)
             PerspectiveCamera {
                 id: cameraNode
                 frustumCullingEnabled: true
@@ -127,107 +127,119 @@ Window {
             camera: cameraNode
         }
     }
-
-    Item {
-        id: tokenArea
-        anchors.left: parent.left
+    Text {
+        id: attributionText
+        anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.margins: 10
-        Text {
-            id: tokenInputArea
-            visible: false
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            color: "white"
-            styleColor: "black"
-            style: Text.Outline
-            text: "Open street map tile token: "
-            Rectangle {
-                border.width: 1
-                border.color: "black"
-                anchors.fill: tokenTxtInput
-                anchors.rightMargin: -30
-                Text {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.topMargin: 2
-                    anchors.rightMargin: 8
-                    color: "blue"
-                    styleColor: "white"
-                    style: Text.Outline
-                    text: "OK"
-                    Behavior on scale {
-                        NumberAnimation {
-                            easing.type: Easing.OutBack
-                        }
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        anchors.margins: -10
-                        onPressedChanged: {
-                            if (pressed)
-                                parent.scale = 0.9
-                            else
-                                parent.scale = 1.0
-                        }
-                        onClicked: {
-                            tokenInputArea.visible = false
-                            osmManager.setToken(tokenTxtInput.text)
-                            tokenWarning.demoToken = osmManager.isDemoToken()
-                            tokenWarning.visible = true
-                        }
-                    }
-                }
-            }
-            TextInput {
-                id: tokenTxtInput
-                clip: true
-                anchors.left: parent.right
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: -3
-                height: tokenTxtInput.contentHeight + 5
-                width: 110
-                leftPadding: 5
-                rightPadding: 5
-            }
-        }
-
-        Text {
-            id: tokenWarning
-            property bool demoToken: true
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            color: "white"
-            styleColor: "black"
-            style: Text.Outline
-            text: demoToken ? "You are using the OSM limited demo token " :
-                              "You are using a token "
-            Text {
-                anchors.left: parent.right
-                color: "blue"
-                styleColor: "white"
-                style: Text.Outline
-                text: "click here to change"
-                Behavior on scale {
-                    NumberAnimation {
-                        easing.type: Easing.OutBack
-                    }
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onPressedChanged: {
-                        if (pressed)
-                            parent.scale = 0.9
-                        else
-                            parent.scale = 1.0
-                    }
-                    onClicked: {
-                        tokenWarning.visible = false
-                        tokenTxtInput.text = osmManager.token()
-                        tokenInputArea.visible = true
-                    }
-                }
-            }
+        color: "white"
+        font.pixelSize: 12
+        text: "© OpenStreetMap contributors"
+        MouseArea {
+            anchors.fill: parent
+            onClicked: osmManager.requestOpenUrl("https://www.openstreetmap.org/copyright")
         }
     }
+    // Item {
+    //     id: tokenArea
+    //     anchors.left: parent.left
+    //     anchors.bottom: parent.bottom
+    //     anchors.margins: 10
+    //     Text {
+    //         id: tokenInputArea
+    //         visible: false
+    //         anchors.left: parent.left
+    //         anchors.bottom: parent.bottom
+    //         color: "white"
+    //         styleColor: "black"
+    //         style: Text.Outline
+    //         text: "Open street map tile token: "
+    //         Rectangle {
+    //             border.width: 1
+    //             border.color: "black"
+    //             anchors.fill: tokenTxtInput
+    //             anchors.rightMargin: -30
+    //             Text {
+    //                 anchors.right: parent.right
+    //                 anchors.top: parent.top
+    //                 anchors.topMargin: 2
+    //                 anchors.rightMargin: 8
+    //                 color: "blue"
+    //                 styleColor: "white"
+    //                 style: Text.Outline
+    //                 text: "OK"
+    //                 Behavior on scale {
+    //                     NumberAnimation {
+    //                         easing.type: Easing.OutBack
+    //                     }
+    //                 }
+    //                 MouseArea {
+    //                     anchors.fill: parent
+    //                     anchors.margins: -10
+    //                     onPressedChanged: {
+    //                         if (pressed)
+    //                             parent.scale = 0.9
+    //                         else
+    //                             parent.scale = 1.0
+    //                     }
+    //                     onClicked: {
+    //                         tokenInputArea.visible = false
+    //                         osmManager.setToken(tokenTxtInput.text)
+    //                         tokenWarning.demoToken = osmManager.isDemoToken()
+    //                         tokenWarning.visible = true
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         TextInput {
+    //             id: tokenTxtInput
+    //             clip: true
+    //             anchors.left: parent.right
+    //             anchors.bottom: parent.bottom
+    //             anchors.bottomMargin: -3
+    //             height: tokenTxtInput.contentHeight + 5
+    //             width: 110
+    //             leftPadding: 5
+    //             rightPadding: 5
+    //         }
+    //     }
+
+    //     Text {
+    //         id: tokenWarning
+    //         property bool demoToken: true
+    //         anchors.left: parent.left
+    //         anchors.bottom: parent.bottom
+    //         color: "white"
+    //         styleColor: "black"
+    //         style: Text.Outline
+    //         text: demoToken ? "You are using the OSM limited demo token " :
+    //                           "You are using a token "
+    //         Text {
+    //             anchors.left: parent.right
+    //             color: "blue"
+    //             styleColor: "white"
+    //             style: Text.Outline
+    //             text: "click here to change"
+    //             Behavior on scale {
+    //                 NumberAnimation {
+    //                     easing.type: Easing.OutBack
+    //                 }
+    //             }
+    //             MouseArea {
+    //                 anchors.fill: parent
+    //                 onPressedChanged: {
+    //                     if (pressed)
+    //                         parent.scale = 0.9
+    //                     else
+    //                         parent.scale = 1.0
+    //                 }
+    //                 onClicked: {
+    //                     tokenWarning.visible = false
+    //                     tokenTxtInput.text = osmManager.token()
+    //                     tokenInputArea.visible = true
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }
