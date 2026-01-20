@@ -73,7 +73,7 @@ Window {
 
         Node {
             id: originNode
-            //eulerRotation: Qt.vector3d(50.0, 0.0, 0.0)
+            eulerRotation: Qt.vector3d(50.0, 0.0, 0.0)
             PerspectiveCamera {
                 id: cameraNode
                 frustumCullingEnabled: true
@@ -126,7 +126,29 @@ Window {
             origin: originNode
             camera: cameraNode
         }
+
+        Model {
+            id: robotPlaceHolder
+            source: "#Cube"
+            materials: DefaultMaterial {
+                diffuseColor: "red"
+            }
+            position: Qt.vector3d(0, 0, 0)
+            scale: Qt.vector3d(0.02, 0.02, 0.02)
+
+            Connections {
+                function onPositionChanged() {
+                    robotPlaceHolder.updatePosition();
+                }
+            }
+
+            function updatePosition() {
+                //TODO
+
+            }
+        }
     }
+
     Text {
         id: attributionText
         anchors.right: parent.right

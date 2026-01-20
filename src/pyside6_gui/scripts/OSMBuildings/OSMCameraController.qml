@@ -24,7 +24,7 @@ Item {
     readonly property real maximumZoom: 200
 
     readonly property real minimumTilt: 0
-    readonly property real maximumTilt: 0
+    readonly property real maximumTilt: 80
 
     implicitWidth: parent.width
     implicitHeight: parent.height
