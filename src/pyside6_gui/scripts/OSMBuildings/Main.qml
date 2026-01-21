@@ -5,7 +5,6 @@ import QtQuick
 import QtQuick.Window
 import QtQuick3D
 import QtQuick3D.Helpers
-
 import OSMBuildings
 
 Window {
@@ -14,11 +13,57 @@ Window {
     visible: true
     title: qsTr("Pyside6 GUI")
 
+    QtObject {
+        id: mapTileCache
+        property var cachedTiles: ({})
+
+        function getTileKey(tileX, tileY, zoomLevel) {
+            return `${zoomLevel}_${tileX}_${tileY}`;
+        }
+
+        function ensureMapModel(mapData, tileX, tileY, zoomLevel) {
+            var key = mapTileCache.getTileKey(tileX, tileY, zoomLevel);
+
+            if (mapTileCache.cachedTiles[key]) {
+                return mapTileCache.cachedTiles[key];
+            } else {
+                var newModel = chunkModelMap.createObject(mapModels, {
+                    "mapData": mapData,
+                    "tileX": tileX,
+                    "tileY": tileY,
+                    "zoomLevel": zoomLevel
+                });
+
+                if (newModel) {
+                    mapTileCache.cachedTiles[key] = newModel;
+                    return newModel;
+                }
+            }
+        }
+
+        function removeOffscreenTiles(visibleTileKeys) {
+            var keysToRemove = [];
+            for (var key in mapTileCache.cachedTiles) {
+                if (mapTileCache.cachedTiles.hasOwnProperty(key)) {
+                    if (!visibleTileKeys.includes(key)) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+
+            for (var i = 0; i < keysToRemove.length; i++) {
+                var key = keysToRemove[i];
+                mapTileCache.cachedTiles[key].destroy();
+                delete mapTileCache.cachedTiles[key];
+            }
+        }
+    }
     OSMManager {
         id: osmManager
 
-        onMapsDataReady: function( mapData, tileX, tileY, zoomLevel ){
-            mapModels.addModel(mapData, tileX, tileY, zoomLevel)
+        onMapsDataReady: function (mapData, tileX, tileY, zoomLevel) {
+            mapTileCache.ensureMapModel(mapData, tileX, tileY, zoomLevel);
+        //mapModels.addModel(mapData, tileX, tileY, zoomLevel)
         }
     }
 
@@ -31,8 +76,8 @@ Window {
             property int zoomLevel: 0
             Model {
                 id: basePlane
-                position: Qt.vector3d( osmManager.tileSizeX * tileX, osmManager.tileSizeY * -tileY, 0.0 )
-                scale: Qt.vector3d( osmManager.tileSizeX / 100., osmManager.tileSizeY / 100., 0.5)
+                position: Qt.vector3d(osmManager.tileSizeX * tileX, osmManager.tileSizeY * -tileY, 0.0)
+                scale: Qt.vector3d(osmManager.tileSizeX / 100., osmManager.tileSizeY / 100., 0.5)
                 source: "#Rectangle"
                 materials: [
                     CustomMaterial {
@@ -40,8 +85,9 @@ Window {
                             enabled: true
                             texture: Texture {
                                 textureData: CustomTextureData {
-                                    Component.onCompleted: setImageData( mapData )
-                                } }
+                                    Component.onCompleted: setImageData(mapData)
+                                }
+                            }
                         }
                         shadingMode: CustomMaterial.Shaded
                         cullMode: Material.BackFaceCulling
@@ -50,8 +96,8 @@ Window {
                 ]
             }
         }
-    }
 
+    }
 
     View3D {
         id: v3d
@@ -64,7 +110,7 @@ Window {
             fxaaEnabled: true
             fog: Fog {
                 id: theFog
-                color:"#8099b3"
+                color: "#8099b3"
                 enabled: true
                 depthEnabled: true
                 depthFar: 600
@@ -83,22 +129,16 @@ Window {
                 z: 100
 
                 onZChanged: originNode.updateManagerCamera()
-
             }
             Component.onCompleted: updateManagerCamera()
 
             onPositionChanged: updateManagerCamera()
 
             onRotationChanged: updateManagerCamera()
-
-            function updateManagerCamera(){
-                osmManager.setCameraProperties( originNode.position,
-                                               originNode.right, cameraNode.z,
-                                               cameraController.minimumZoom,
-                                               cameraController.maximumZoom,
-                                               originNode.eulerRotation.x,
-                                               cameraController.minimumTilt,
-                                               cameraController.maximumTilt )
+            function updateVisibleTiles() {
+            }//TODO
+            function updateManagerCamera() {
+                osmManager.setCameraProperties(originNode.position, originNode.right, cameraNode.z, cameraController.minimumZoom, cameraController.maximumZoom, originNode.eulerRotation.x, cameraController.minimumTilt, cameraController.maximumTilt);
             }
         }
 
@@ -110,14 +150,39 @@ Window {
 
         Node {
             id: mapModels
+            function addModel(mapData, tileX, tileY, zoomLevel) {
+                chunkModelMap.createObject(mapModels, {
+                    "mapData": mapData,
+                    "tileX": tileX,
+                    "tileY": tileY,
+                    "zoomLevel": zoomLevel
+                });
+            }
+            Model {
+                id: robotPlaceHolder
+                source: "#Cube"
+                materials: DefaultMaterial {
+                    diffuseColor: "red"
+                }
+                position: Qt.vector3d(0, 0, 0)
+                scale: Qt.vector3d(0.09, 0.09, 0.09)
 
-            function addModel(mapData, tileX, tileY, zoomLevel)
-            {
-                chunkModelMap.createObject( mapModels, { "mapData": mapData,
-                                               "tileX": tileX,
-                                               "tileY": tileY,
-                                               "zoomLevel": zoomLevel
-                                           } )
+                Connections {
+                    target: mavrosHandler
+                    function onPositionChanged(latitude, longitude, altitude) {
+                        robotPlaceHolder.updatePosition(latitude, longitude, altitude);
+                    }
+                }
+
+                function updatePosition(latitude, longitude, altitude) {
+                    //TODO
+                    var res = osmManager.deg2num(latitude, longitude, 15);
+
+                    const x =  ((res[0] - osmManager.startBuildingTileX)) 
+                    const y = ((res[1] - osmManager.startBuildingTileY))
+                    //robotPlaceHolder.position = Qt.vector3d(x,y,0)
+
+                }
             }
         }
 
@@ -125,29 +190,6 @@ Window {
             id: cameraController
             origin: originNode
             camera: cameraNode
-        }
-
-        Model {
-            id: robotPlaceHolder
-            source: "#Cube"
-            materials: DefaultMaterial {
-                diffuseColor: "red"
-            }
-            position: Qt.vector3d(0, 0, 0)
-            scale: Qt.vector3d(0.02, 0.02, 0.02)
-
-            Connections {
-                target: mavrosHandler
-                function onPositionChanged(latitude, longitude, altitude) {
-                    robotPlaceHolder.updatePosition(latitude, longitude, altitude);
-                }
-            }
-
-            function updatePosition(latitude, longitude, altitude) {
-                //console.log(latitude,longitude,altitude)
-                //TODO
-
-            }
         }
     }
 

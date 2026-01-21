@@ -5,6 +5,7 @@ from PySide6.QtQuick3D import QQuick3DTextureData
 from PySide6.QtQml import QmlElement
 from PySide6.QtGui import QImage, QVector3D, QDesktopServices
 from PySide6.QtCore import QByteArray, QObject, Property, Slot, Signal
+import math
 
 from .request import OSMTileData, OSMRequest
 
@@ -22,11 +23,33 @@ class OSMManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.m_request = OSMRequest(self)
-        self.m_startBuildingTileX = 10596
-        self.m_startBuildingTileY = 11830
+        self.home_latitude = 44.643898
+        self.home_longitude = -63.575749
+        result = self.deg2num(
+            self.home_latitude, self.home_longitude, zoom=15
+        )
+        self.m_startBuildingTileX = result[0]
+        self.m_startBuildingTileY = result[1]
         self.m_tileSizeX = 37
         self.m_tileSizeY = 37
         self.m_request.mapsDataReady.connect(self._slotMapsDataReady)
+
+
+    # https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+    @Slot(int, int,int,result=list)
+    def deg2num(self, lat_deg, lon_deg, zoom=15):
+        lat_rad = math.radians(lat_deg)
+        n = 1 << zoom
+        xtile = int((lon_deg + 180.0) / 360.0 * n)
+        ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+        return [xtile, ytile]
+
+    def num2deg(self, xtile, ytile, zoom):
+        n = 1 << zoom
+        lon_deg = xtile / n * 360.0 - 180.0
+        lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
+        lat_deg = math.degrees(lat_rad)
+        return lat_deg, lon_deg
 
     def tileSizeX(self):
         return self.m_tileSizeX
@@ -34,15 +57,21 @@ class OSMManager(QObject):
     def tileSizeY(self):
         return self.m_tileSizeY
 
+    def startBuildingTileX (self):
+        return self.m_startBuildingTileX
+    def startBuildingTileY (self):
+        return self.m_startBuildingTileY
+
     @Slot(QByteArray, int, int, int)
     def _slotMapsDataReady(self, mapData, tileX, tileY, zoomLevel):
-        self.mapsDataReady.emit(mapData, tileX - self.m_startBuildingTileX,
-                                tileY - self.m_startBuildingTileY, zoomLevel)
+        self.mapsDataReady.emit(
+            mapData, tileX - self.m_startBuildingTileX, tileY - self.m_startBuildingTileY, zoomLevel
+        )
 
     @Slot(QVector3D, QVector3D, float, float, float, float, float, float)
-    def setCameraProperties(self, position, right,
-                            cameraZoom, minimumZoom, maximumZoom,
-                            cameraTilt, minimumTilt, maximumTilt):
+    def setCameraProperties(
+        self, position, right, cameraZoom, minimumZoom, maximumZoom, cameraTilt, minimumTilt, maximumTilt
+    ):
 
         tiltFactor = (cameraTilt - minimumTilt) / max(maximumTilt - minimumTilt, 1.0)
         zoomFactor = (cameraZoom - minimumZoom) / max(maximumZoom - minimumZoom, 1.0)
@@ -61,10 +90,8 @@ class OSMManager(QObject):
                 tile_y = self.m_startBuildingTileY - int(transferredPosition.y() / self.m_tileSizeY)
                 self.addBuildingRequestToQueue(queue, tile_x, tile_y)
 
-        projectedTileX = (self.m_startBuildingTileX + int(projectionOfForwardOnXY.x()
-                          / self.m_tileSizeX))
-        projectedTileY = (self.m_startBuildingTileY - int(projectionOfForwardOnXY.y()
-                          / self.m_tileSizeY))
+        projectedTileX = self.m_startBuildingTileX + int(projectionOfForwardOnXY.x() / self.m_tileSizeX)
+        projectedTileY = self.m_startBuildingTileY - int(projectionOfForwardOnXY.y() / self.m_tileSizeY)
 
         def tile_sort_key(tile_data):
             return tile_data.distanceTo(projectedTileX, projectedTileY)
@@ -88,7 +115,7 @@ class OSMManager(QObject):
     def token(self):
         return self.m_request.token()
 
-    @Slot(str) 
+    @Slot(str)
     def requestOpenUrl(self, url: str):
         try:
             QDesktopServices.openUrl(url)
@@ -97,6 +124,8 @@ class OSMManager(QObject):
 
     tileSizeX = Property(int, tileSizeX, constant=True)
     tileSizeY = Property(int, tileSizeY, constant=True)
+    startBuildingTileX = Property(int, startBuildingTileX, constant=True)
+    startBuildingTileY = Property(int, startBuildingTileY, constant=True)
 
 
 @QmlElement

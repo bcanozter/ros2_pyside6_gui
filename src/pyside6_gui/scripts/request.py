@@ -8,7 +8,7 @@ from functools import partial
 
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PySide6.QtCore import (QByteArray, QTimer, QFile, QFileInfo,
-                            QObject, QUrl, Signal, Slot)
+                            QObject, QUrl, Signal, Slot, QDir)
 
 # %1 = zoom level(is dynamic), %2 = x tile number, %3 = y tile number
 URL_OSMB_MAP = "https://a.tile.openstreetmap.org/{}/{}/{}.png"
@@ -121,6 +121,12 @@ class OSMRequest(QObject):
         if reply.error() == QNetworkReply.NetworkError.NoError:
             data = reply.readAll()
             self.mapsDataReady.emit(data, tile.TileX, tile.TileY, tile.ZoomLevel)
+            fileName = "data/" + tileKey(tile) + ".png"
+            QDir().mkpath("data/")
+            file = QFile(fileName)
+            if file.open(QFile.OpenModeFlag.WriteOnly):
+                file.write(data)
+                file.close()
         else:
             message = reply.readAll().data().decode('utf-8')
             if message != self.m_lastMapsDataError:
