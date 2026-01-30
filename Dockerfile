@@ -26,6 +26,7 @@ RUN apt-get update -y && apt-get install -y \
     libxcb-cursor0 \
     libxcb-shape0 \
     libxcb-xinput0 \
+    qt6-base-dev \
     make
 
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh
