@@ -23,8 +23,8 @@ class OSMManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.m_request = OSMRequest(self)
-        self.home_latitude = 44.643898
-        self.home_longitude = -63.575749
+        self.home_latitude = 44.64750
+        self.home_longitude = -63.58028
         result = self.deg2num(
             self.home_latitude, self.home_longitude, zoom=15
         )
