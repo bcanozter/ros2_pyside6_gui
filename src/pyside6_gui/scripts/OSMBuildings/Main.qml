@@ -160,12 +160,12 @@ Window {
             }
             Model {
                 id: robotPlaceHolder
-                source: "#Cube"
+                source: "#Cube" //TODO change model..
                 materials: DefaultMaterial {
                     diffuseColor: "red"
                 }
                 position: Qt.vector3d(0, 0, 0)
-                scale: Qt.vector3d(0.09, 0.09, 0.09)
+                scale: Qt.vector3d(0.04, 0.04, 0.04)
 
                 Connections {
                     target: mavrosHandler
@@ -175,13 +175,11 @@ Window {
                 }
 
                 function updatePosition(latitude, longitude, altitude) {
-                    //TODO
-                    var res = osmManager.deg2num(latitude, longitude, 15);
-
-                    const x =  ((res[0] - osmManager.startBuildingTileX)) 
-                    const y = ((res[1] - osmManager.startBuildingTileY))
-                    //robotPlaceHolder.position = Qt.vector3d(x,y,0)
-
+                    var res = osmManager.deg2num_f(latitude, longitude, 15);
+                    // console.log(latitude,longitude)
+                    var x = (res[0] - osmManager.startBuildingTileX) * osmManager.tileSizeX
+                    var y = -(res[1] - osmManager.startBuildingTileY)  * osmManager.tileSizeY
+                    robotPlaceHolder.position = Qt.vector3d(x,y,altitude)
                 }
             }
         }
