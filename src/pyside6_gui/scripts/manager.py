@@ -34,14 +34,21 @@ class OSMManager(QObject):
         self.m_tileSizeY = 37
         self.m_request.mapsDataReady.connect(self._slotMapsDataReady)
 
-
     # https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-    @Slot(int, int,int,result=list)
-    def deg2num(self, lat_deg, lon_deg, zoom=15):
+    @Slot(float, float, int, result=list)
+    def deg2num(self, lat_deg: float, lon_deg: float, zoom: int = 15):
         lat_rad = math.radians(lat_deg)
         n = 1 << zoom
         xtile = int((lon_deg + 180.0) / 360.0 * n)
         ytile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+        return [xtile, ytile]
+
+    @Slot(float, float, int, result=list)
+    def deg2num_f(self, lat_deg: float, lon_deg: float, zoom: int = 15):
+        lat_rad = math.radians(lat_deg)
+        n = 1 << zoom
+        xtile = (lon_deg + 180.0) / 360.0 * n
+        ytile = (1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n
         return [xtile, ytile]
 
     def num2deg(self, xtile, ytile, zoom):
@@ -57,9 +64,10 @@ class OSMManager(QObject):
     def tileSizeY(self):
         return self.m_tileSizeY
 
-    def startBuildingTileX (self):
+    def startBuildingTileX(self):
         return self.m_startBuildingTileX
-    def startBuildingTileY (self):
+
+    def startBuildingTileY(self):
         return self.m_startBuildingTileY
 
     @Slot(QByteArray, int, int, int)
