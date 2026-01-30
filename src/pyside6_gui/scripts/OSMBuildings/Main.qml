@@ -76,8 +76,8 @@ Window {
             property int zoomLevel: 0
             Model {
                 id: basePlane
-                position: Qt.vector3d(osmManager.tileSizeX * tileX, osmManager.tileSizeY * -tileY, 0.0)
-                scale: Qt.vector3d(osmManager.tileSizeX / 100., osmManager.tileSizeY / 100., 0.5)
+                position: Qt.vector3d(osmManager && osmManager.tileSizeX * tileX, osmManager && osmManager.tileSizeY * -tileY, 0.0)
+                scale: Qt.vector3d(osmManager && osmManager.tileSizeX / 100., osmManager && osmManager.tileSizeY / 100., 0.5)
                 source: "#Rectangle"
                 materials: [
                     CustomMaterial {
@@ -177,8 +177,10 @@ Window {
                 function updatePosition(latitude, longitude, altitude) {
                     var res = osmManager.deg2num_f(latitude, longitude, 15);
                     // console.log(latitude,longitude)
-                    var x = (res[0] - osmManager.startBuildingTileX) * osmManager.tileSizeX
-                    var y = -(res[1] - osmManager.startBuildingTileY)  * osmManager.tileSizeY
+                    //0.5 is the magic number.. centers it within the tile,
+                    //otherwise, the model is referenced to the top left corner of a tile
+                    var x = ((res[0]-0.5) - osmManager.startBuildingTileX) * osmManager.tileSizeX
+                    var y = -((res[1]-0.5) - osmManager.startBuildingTileY)  * osmManager.tileSizeY
                     robotPlaceHolder.position = Qt.vector3d(x,y,altitude)
                 }
             }
