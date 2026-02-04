@@ -189,7 +189,8 @@ Item {
                 rotateAlongZ += rotateX;
                 let rotateAlongZRad = rotateAlongZ * (Math.PI / 180.)
 
-                origin.rotate(rotateX, Qt.vector3d(0.0, 0.0, -1.0), Node.SceneSpace)
+                //TODO uncomment this when rotation is implemented. For now always keep it NORTH
+                // origin.rotate(rotateX, Qt.vector3d(0.0, 0.0, -1.0), Node.SceneSpace)
 
                 var rotateY = delta.y * -ySpeed * frameDelta
                 if ( yInvert )
