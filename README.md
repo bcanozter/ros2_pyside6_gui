@@ -2,6 +2,8 @@
 
 __*WIP*__
 
+__This is not a replacement for any ground control station. Purely for experimenting and learning purposes..__
+
 Can run the ros main loop along with example pyside6 gui app OSMBuildings.
 
 
