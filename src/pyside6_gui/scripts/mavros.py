@@ -6,7 +6,7 @@ from rclpy.qos import qos_profile_default, qos_profile_sensor_data
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 from PySide6.QtQml import QmlElement
 from PySide6.QtCore import QObject, Signal
-
+import time
 
 QML_IMPORT_NAME = "MAVROS"
 QML_IMPORT_MAJOR_VERSION = 1
@@ -14,7 +14,7 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 @QmlElement
 class MAVROS(QObject):
-    positionChanged = Signal(float, float, float)
+    positionChanged = Signal(float, float, float,int)
 
     def __init__(self, node: Node, namespace: str):
         super().__init__()
@@ -28,6 +28,7 @@ class MAVROS(QObject):
         queue_size = 10
         self.sync = ApproximateTimeSynchronizer([self.vfr_hud_sub, self.global_position_sub], queue_size, 0.5)
         self.sync.registerCallback(self.sync_gps_cb)
+        self.last_gps_emit_time = 0.0
 
     def create_subcriber_variables(self):
         self.state_sub = None
@@ -94,7 +95,10 @@ class MAVROS(QObject):
         self.sys_status = msg
 
     def sync_gps_cb(self, vfr_hud, global_position):
-        self.positionChanged.emit(global_position.latitude, global_position.longitude, vfr_hud.altitude)
+        seconds_since_epoch = time.time()
+        if(seconds_since_epoch - self.last_gps_emit_time > 1):
+            self.positionChanged.emit(global_position.latitude, global_position.longitude, vfr_hud.altitude,vfr_hud.heading)
+            self.last_gps_emit_time = time.time()
 
     def destroy(self):
         for sub in self.subscriptions:

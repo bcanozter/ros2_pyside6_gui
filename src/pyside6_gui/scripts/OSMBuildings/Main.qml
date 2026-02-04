@@ -159,30 +159,46 @@ Window {
                 });
             }
             Model {
+                property real latitude: 0.0
+                property real longitude: 0.0
+                property real altitude: 0.0
+                property int heading: 0
                 id: robotPlaceHolder
                 source: "models/meshes/quadcopter.mesh"
                 materials: DefaultMaterial {
                     diffuseColor: "black"
                 }
                 position: Qt.vector3d(0, 0, 0)
-                eulerRotation: Qt.vector3d(180, 0, 0) //TODO implement model rotation based on simulated orientation data
+                eulerRotation: Qt.vector3d(180, 0, 90) //TODO Ensure the imported model is initialized with 0,0,0.
                 scale: Qt.vector3d(0.02, 0.02, 0.02)
 
                 Connections {
                     target: mavrosHandler
-                    function onPositionChanged(latitude, longitude, altitude) {
-                        robotPlaceHolder.updatePosition(latitude, longitude, altitude);
+                    function onPositionChanged(latitude, longitude, altitude,heading) {
+                        robotPlaceHolder.updatePosition(latitude, longitude, altitude,heading);
                     }
                 }
 
-                function updatePosition(latitude, longitude, altitude) {
-                    var res = osmManager.deg2num_f(latitude, longitude, 15);
-                    // console.log(latitude,longitude)
-                    //0.5 is the magic number.. centers it within the tile,
-                    //otherwise, the model is referenced to the top left corner of a tile
-                    var x = ((res[0]-0.5) - osmManager.startBuildingTileX) * osmManager.tileSizeX
-                    var y = -((res[1]-0.5) - osmManager.startBuildingTileY)  * osmManager.tileSizeY
-                    robotPlaceHolder.position = Qt.vector3d(x,y,altitude)
+                //TODO: readability
+                function updatePosition(latitude, longitude, altitude,heading) {
+                    if(altitude != robotPlaceHolder.altitude || latitude != robotPlaceHolder.latitude || longitude != robotPlaceHolder.longitude){
+                        robotPlaceHolder.latitude = latitude
+                        robotPlaceHolder.longitude = longitude
+                        robotPlaceHolder.altitude = altitude
+                        var res = osmManager.deg2num_f(latitude, longitude, 15);
+                        // console.log(latitude,longitude)
+                        //0.5 is the magic number.. centers it within the tile,
+                        //otherwise, the model is referenced to the top left corner of a tile
+                        var x = ((res[0]-0.5) - osmManager.startBuildingTileX) * osmManager.tileSizeX
+                        var y = -((res[1]-0.5) - osmManager.startBuildingTileY) * osmManager.tileSizeY
+                        robotPlaceHolder.position = Qt.vector3d(x,y,altitude)
+                    }
+                    if( heading != robotPlaceHolder.heading){
+                        robotPlaceHolder.heading = heading
+                        //! 90 degrees is the offset. See the robotPlaceHolder.eulerRotation
+                        robotPlaceHolder.eulerRotation = Qt.vector3d(180,0,heading+90)
+                    }
+
                 }
             }
         }
@@ -191,6 +207,71 @@ Window {
             id: cameraController
             origin: originNode
             camera: cameraNode
+        }
+    }
+
+    //TODO: Replace this with compass arrow logo/icon
+    //Quick and Dirty solution for debugging
+    Item {
+        id: compassItem
+        anchors.right: parent.right
+        anchors.top: parent.top
+        width: 150
+        height: 150
+        anchors.margins: 10
+        Item {
+            id: arrow
+            width: 50
+            height: 50
+            rotation: robotPlaceHolder.heading //update from telemetry
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            Rectangle {
+                id: arrowBody
+                width: 10
+                height: 80
+                color: "red"
+                anchors.centerIn: parent
+                Rectangle {
+                    id: arrowHead
+                    width: 30
+                    height: 10
+                    color: "red"
+                    anchors.horizontalCenter: arrowBody.horizontalCenter
+                }
+            }
+        }
+        Text {
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            id: northText
+            color: "black"
+            font.pixelSize: 12
+            text: "North"
+        }
+        Text {
+            id: southText
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            color: "black"
+            font.pixelSize: 12
+            text: "South"
+        }
+        Text {
+            id: westText
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            color: "black"
+            font.pixelSize: 12
+            text: "West"
+        }
+        Text {
+            id: eastText
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            color: "black"
+            font.pixelSize: 12
+            text: "East"
         }
     }
 
