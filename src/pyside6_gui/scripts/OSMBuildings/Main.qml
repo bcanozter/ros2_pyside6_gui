@@ -160,12 +160,13 @@ Window {
             }
             Model {
                 id: robotPlaceHolder
-                source: "#Cube" //TODO change model..
+                source: "models/meshes/quadcopter.mesh"
                 materials: DefaultMaterial {
-                    diffuseColor: "red"
+                    diffuseColor: "black"
                 }
                 position: Qt.vector3d(0, 0, 0)
-                scale: Qt.vector3d(0.04, 0.04, 0.04)
+                eulerRotation: Qt.vector3d(180, 0, 0) //TODO implement model rotation based on simulated orientation data
+                scale: Qt.vector3d(0.02, 0.02, 0.02)
 
                 Connections {
                     target: mavrosHandler
